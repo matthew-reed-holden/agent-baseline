@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "shadcn":        { "type": "stdio", "command": "npx", "args": ["shadcn@latest", "mcp"] },
+    "storybook":     { "type": "http",  "url": "http://localhost:{{STORYBOOK_PORT}}/mcp" },
+    "next-devtools": { "type": "stdio", "command": "npx", "args": ["-y", "next-devtools-mcp@latest"] }
+  }
+}

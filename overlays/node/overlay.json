@@ -1,0 +1,6 @@
+{
+  "plugins": ["frontend-design@claude-plugins-official"],
+  "vars": [
+    { "name": "STORYBOOK_PORT", "prompt": "Storybook dev-server port", "default": "6006" }
+  ]
+}

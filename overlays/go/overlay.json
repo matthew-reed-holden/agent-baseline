@@ -1,0 +1,8 @@
+{
+  "plugins": ["gopls-lsp@claude-plugins-official"],
+  "vars": [
+    { "name": "DATABASE_URL_DEFAULT",
+      "prompt": "Local Postgres URL used when DATABASE_URL is unset",
+      "default": "postgres://localhost:5432/postgres?sslmode=disable" }
+  ]
+}
