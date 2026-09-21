@@ -155,7 +155,7 @@ Env references are `${VAR}` or `${VAR:-default}`.
 | `env.K = "${V:-d}"` | `env_vars = ["V"]` + `env.K = "d"` | `environment.K = "{env:V}"` (no default; noted in env check) |
 | `env.K = "literal"` | `env.K = "literal"` | `environment.K = "literal"` |
 | `headers.Authorization = "Bearer ${V}"` | `bearer_token_env_var = "V"` | `headers.Authorization = "Bearer {env:V}"` |
-| other `headers.H = "${V}"` | `http_headers.H`? — unsupported: error | `headers.H = "{env:V}"` |
+| other `headers.H = "${V}"` | unsupported: hard error | `headers.H = "{env:V}"` |
 
 Anything render.py cannot express in a target format is a hard error naming
 the server and field — silent lossy output is how drift starts.
