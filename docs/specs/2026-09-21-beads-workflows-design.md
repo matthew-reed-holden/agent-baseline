@@ -64,13 +64,16 @@ by `bd dolt push`, exported to the JSONL, visible to every later agent via
 | `plan` | Write plan for {{name}} | task | approve-spec | — | Use writing-plans → `docs/plans/<date>-{{name}}.md`; path in `--notes`. Create one child bead per plan task under `implement` (`bd create --parent <implement id>`), with `bd dep add` between tasks that must be sequential. |
 | `implement` | Implement {{name}} | epic | plan | — | Subagent-driven development over the children, TDD. Decisions → decision beads. Done when every child is closed. |
 | `review-pr` | Review and open PR for {{name}} | task | implement | — | requesting-code-review; fix findings; `bd export --include-memories > .beads/issues.jsonl`; `bd dolt push`; `git push`; `gh pr create` → PR URL in `--notes`. |
-| `merge` | Merge {{name}} | task | review-pr | `gh:pr`, timeout 168h | Human merges the PR. `bd gate check` (session start, or by hand) closes the gate. Step body: confirm merged, note merge SHA. |
+| `merge` | Merge {{name}} | task | review-pr | `gh:pr` (created in review-pr), 168h | Human merges the PR. `bd gate check` (session start, or by hand) closes the gate. Step body: confirm merged, note merge SHA. |
 | `verify` | Verify {{name}} in the real app | task, label `human` | merge | — | Check on staging/prod. Close with what you saw; reopen `implement` children or file bugs otherwise. |
 | `wrap-up` | Wrap up {{name}} | task | verify | — | File follow-up beads for anything deferred, `bd remember` durable learnings, ensure docs updated, close the molecule root. |
 
 Vars: `name` (required, pattern `^[a-z0-9][a-z0-9-]*$`), `summary` (required).
-Root bead: `type = epic`, title `{{name}}: {{summary}}`, steps as its children
-(`children` construct), labels `["formula:feature"]`.
+Steps are flat top-level `[[steps]]`; `bd mol pour` creates the molecule root
+itself (type `molecule`, titled with the formula name). Every step carries
+`labels = ["formula:feature"]`; human steps add `"human"`. The `gh:pr` gate is
+created at `review-pr` time with `bd gate create --type=gh:pr --await-id <pr>
+--blocks <merge id> --timeout 168h`, because the PR number is unknown at pour.
 
 ## Formula: `bugfix` (poured, persistent)
 
@@ -81,14 +84,14 @@ Root bead: `type = epic`, title `{{name}}: {{summary}}`, steps as its children
 | `reproduce` | Reproduce {{bug}} | task | — | — | Read `bd show {{bug}}`. Write the failing test that captures it (systematic-debugging). If it needs design: decision bead "this is a feature — pour `feature`?" |
 | `fix` | Fix {{bug}} | task | reproduce | — | Minimal change that makes the test pass; TDD. |
 | `review-pr` | Review and open PR for {{bug}} | task | fix | — | as in `feature` |
-| `merge` | Merge fix for {{bug}} | task | review-pr | `gh:pr`, 168h | as in `feature` |
+| `merge` | Merge fix for {{bug}} | task | review-pr | `gh:pr` (created in review-pr), 168h | as in `feature` |
 | `verify` | Verify fix for {{bug}} | task, label `human` | merge | — | as in `feature` |
 | `wrap-up` | Wrap up {{bug}} | task | verify | — | Close `{{bug}}` with `--reason` pointing at the PR; `bd remember` if the root cause generalises; close the molecule root. |
 
 Vars: `bug` (required, pattern `^[a-z0-9-]+-[a-z0-9.]+$`).
-Root bead: `type = epic`, title `Fix {{bug}}`, labels `["formula:bugfix"]`,
-`bd dep add {{bug}} <root>` is done by the agent in `reproduce` so the bug
-shows as blocked by its fix.
+Flat steps as in `feature`, labels `["formula:bugfix"]`. In `reproduce` the
+agent runs `bd dep add {{bug}} <molecule root id>` so the bug shows as blocked
+by its fix; `wrap-up` closes the bug.
 
 ## PRIME.md additions
 
@@ -101,7 +104,10 @@ Under **Core rules**:
 - Gates: `bd gate check` runs at session start; run it by hand after a
   merge to unblock the next step now. `bd human list` is the human queue.
 
-Under **Essential commands**: `bd mol current`, `bd human list|respond`,
+Agents find work with `bd ready --exclude-label human`; they never claim a
+`human`-labeled bead.
+
+Under **Essential commands**: `bd ready --exclude-label human`, `bd mol current`, `bd human list|respond`,
 `bd create -t decision --labels human`.
 
 There is no `human` issue type (`bd types`); "human step" throughout means
