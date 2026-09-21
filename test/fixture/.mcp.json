@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "db":  { "type": "stdio", "command": "npx", "args": ["-y", "@modelcontextprotocol/server-postgres@0.6.2"],
+             "env": { "POSTGRES_CONNECTION_STRING": "${DATABASE_URL:-postgres://localhost:5432/postgres}" } },
+    "api": { "type": "http", "url": "https://example.com/mcp", "headers": { "Authorization": "Bearer ${API_TOKEN}" } }
+  }
+}
