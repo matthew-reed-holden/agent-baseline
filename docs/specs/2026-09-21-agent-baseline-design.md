@@ -65,7 +65,7 @@ Overlay seeds win over baseline seeds for the same path.
 
 - `hooks.SessionStart` = `[{ matcher: "", hooks: [{ type: "command", command: "bd prime --hook-json" }] }]`
 - `enabledMcpjsonServers` = keys of `.mcp.json`
-- `enabledPlugins` = overlay `plugins`, each `true`
+- `enabledPlugins` — overlay `plugins` are set `true`; entries already present (repo-specific plugins) are kept
 
 ### Not touched
 

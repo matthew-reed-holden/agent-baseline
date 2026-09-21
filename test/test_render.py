@@ -68,7 +68,7 @@ class Settings(unittest.TestCase):
             s = json.loads(p.read_text())
             self.assertEqual(s["permissions"], {"allow": ["Bash(ls)"]})
             self.assertEqual(s["enabledMcpjsonServers"], ["a", "b"])
-            self.assertEqual(s["enabledPlugins"], {"p@x": True})
+            self.assertEqual(s["enabledPlugins"], {"old@x": True, "p@x": True})
             self.assertEqual(s["hooks"]["SessionStart"][0]["hooks"][0]["command"], "bd prime --hook-json")
 
     def test_merge_creates_file(self):

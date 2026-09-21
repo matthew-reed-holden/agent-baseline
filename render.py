@@ -107,7 +107,7 @@ def merge_settings(path, mcp_names, plugins):
         {"matcher": "", "hooks": [{"type": "command", "command": "bd prime --hook-json"}]}
     ]
     d["enabledMcpjsonServers"] = sorted(mcp_names)
-    d["enabledPlugins"] = {p: True for p in plugins}
+    d["enabledPlugins"] = {**d.get("enabledPlugins", {}), **{p: True for p in plugins}}  # add, never drop
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(d, indent=2, sort_keys=True) + "\n")
 

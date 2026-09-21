@@ -34,7 +34,7 @@ check at the end of every apply tells you what to export.
 | owned | `CLAUDE.md` (→ `AGENTS.md`), `.beads/PRIME.md`, `.beads/formulas/`, `.codex/hooks.json`, `.agents/skills/beads/` | overwritten on every apply |
 | seeded | `AGENTS.md`, `.mcp.json`, `docs/README.md`, `agents/README.md`, overlay `.mcp.json` | created once, then yours |
 | generated | `.codex/config.toml`, `opencode.json`, `.claude/agents/`, `.opencode/agents/` | from `.mcp.json` / `agents/`; don't edit |
-| merged | `.claude/settings.json` | only `hooks.SessionStart`, `enabledMcpjsonServers`, `enabledPlugins` are touched |
+| merged | `.claude/settings.json` | only `hooks.SessionStart`, `enabledMcpjsonServers`, `enabledPlugins` are touched; overlay plugins are added, existing ones kept |
 
 `.beads/config.yaml` gets `agent.profile: team-maintainer` appended if absent.
 
