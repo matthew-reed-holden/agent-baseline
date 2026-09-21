@@ -3,7 +3,7 @@ AGENTS.md                   seeded
 CLAUDE.md                   owned
 .mcp.json                   seeded
 .beads/PRIME.md             owned
-.beads/formulas/.gitkeep    owned
+.beads/formulas             owned
 .codex/hooks.json           owned
 .agents/skills/beads        owned
 agents/README.md            seeded

@@ -1,0 +1,69 @@
+formula = "bugfix"
+description = "Bug loop: reproduce (failing test) > fix > review+PR > merge (gh:pr gate) > verify > wrap up"
+version = 1
+type = "workflow"
+
+[vars.bug]
+description = "The bug bead this molecule fixes, e.g. theostack-go-3yxo"
+required = true
+pattern = "^[A-Za-z0-9_.-]+$"
+
+[[steps]]
+id = "reproduce"
+title = "Reproduce {{bug}}"
+labels = ["formula:bugfix"]
+description = """
+`bd show {{bug}}`. Link the bug to this molecule: `bd dep add {{bug}} <molecule root id>` (`bd mol current` shows the root).
+Use systematic-debugging: write the failing test that captures the bug; commit it on a branch.
+If the fix needs design, file a decision bead ("this is a feature - pour `feature`?") blocking this step and stop.
+`bd update <this id> --notes "repro: <test path>"`. Close.
+"""
+
+[[steps]]
+id = "fix"
+title = "Fix {{bug}}"
+labels = ["formula:bugfix"]
+needs = ["reproduce"]
+description = """
+Minimal change that makes the failing test pass (TDD). Behaviour/scope choices -> decision beads. Close.
+"""
+
+[[steps]]
+id = "review-pr"
+title = "Review and open PR for {{bug}}"
+labels = ["formula:bugfix"]
+needs = ["fix"]
+description = """
+1. requesting-code-review; fix what it finds. 2. Quality gates from AGENTS.md -> Build & Test.
+3. `bd export --include-memories > .beads/issues.jsonl`; commit; `bd dolt push`; `git push -u origin <branch>`.
+4. `gh pr create` (target: AGENTS.md -> Git); `bd update <this id> --notes "pr: <url>"`.
+5. `bd gate create --type=gh:pr --await-id <pr number> --timeout 168h --blocks <merge step id>`. Close.
+"""
+
+[[steps]]
+id = "merge"
+title = "Merge fix for {{bug}}"
+labels = ["formula:bugfix"]
+needs = ["review-pr"]
+description = """
+Blocked by the gh:pr gate until a human merges. After `bd gate check` resolves it: confirm with `gh pr view`, note the SHA, close.
+"""
+
+[[steps]]
+id = "verify"
+title = "Verify fix for {{bug}}"
+labels = ["formula:bugfix", "human"]
+needs = ["merge"]
+description = """
+Human: confirm the bug is gone where it was reported. Close with what you saw; if not fixed, comment and reopen `fix`.
+"""
+
+[[steps]]
+id = "wrap-up"
+title = "Wrap up {{bug}}"
+labels = ["formula:bugfix"]
+needs = ["verify"]
+description = """
+`bd close {{bug}} --reason "fixed in <pr url>"`. `bd remember` if the root cause generalises.
+`bd export --include-memories > .beads/issues.jsonl`; commit; `bd dolt push`; push. Close this step, then the molecule root.
+"""

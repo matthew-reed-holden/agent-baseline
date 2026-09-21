@@ -1,0 +1,125 @@
+formula = "feature"
+description = "Feature loop: brainstorm > approve > spec > approve > plan > implement > review+PR > merge (gh:pr gate) > verify > wrap up"
+version = 1
+type = "workflow"
+
+[vars.name]
+description = "Short slug for the feature; used in titles and doc filenames"
+required = true
+pattern = "^[a-z0-9][a-z0-9-]*$"
+
+[vars.summary]
+description = "One sentence: what the feature does, for whom"
+required = true
+
+[[steps]]
+id = "brainstorm"
+title = "Brainstorm {{name}}"
+labels = ["formula:feature"]
+description = """
+{{summary}}
+
+Use the brainstorming skill: explore the repo, ask one question at a time, propose 2-3 approaches with a recommendation.
+Every question that needs a human decision becomes a decision bead blocking this step
+(`bd create -t decision --labels human --parent <this id> --title "..." --description "context, options, my lean"` then
+`bd dep add <this id> <decision id>`); then stop or take other ready work. Never assume.
+Done: `bd update <this id> --design "<classification + chosen approach>"`, then close. The approval step becomes visible to the human.
+"""
+
+[[steps]]
+id = "approve-approach"
+title = "Approve approach for {{name}}"
+labels = ["formula:feature", "human"]
+needs = ["brainstorm"]
+description = """
+Human: `bd show <brainstorm id>` and read the design field. Close this bead to approve.
+To ask for changes: comment here and `bd reopen` the brainstorm step instead of closing.
+"""
+
+[[steps]]
+id = "spec"
+title = "Write spec for {{name}}"
+labels = ["formula:feature"]
+needs = ["approve-approach"]
+description = """
+Write docs/specs/<YYYY-MM-DD>-{{name}}-design.md from the approved approach: goal, non-goals, architecture,
+components, data flow, error handling, testing. Self-review for placeholders, contradictions, ambiguity.
+Commit on the feature branch. `bd update <this id> --notes "spec: <path>"`. Questions -> decision beads. Close.
+"""
+
+[[steps]]
+id = "approve-spec"
+title = "Approve spec for {{name}}"
+labels = ["formula:feature", "human"]
+needs = ["spec"]
+description = """
+Human: review the spec at the path in the spec step's notes. Close to approve; comment and reopen `spec` for changes.
+"""
+
+[[steps]]
+id = "plan"
+title = "Write plan for {{name}}"
+labels = ["formula:feature"]
+needs = ["approve-spec"]
+description = """
+Use the writing-plans skill -> docs/plans/<YYYY-MM-DD>-{{name}}.md; commit; `bd update <this id> --notes "plan: <path>"`.
+Create one bead per plan task as a child of the implement step:
+`bd create --title "Task N: <name>" --description "<what it builds + how to verify>" -t task --parent <implement id>`
+and `bd dep add <later task> <earlier task>` wherever order matters. Close this step.
+"""
+
+[[steps]]
+id = "implement"
+title = "Implement {{name}}"
+type = "epic"
+labels = ["formula:feature"]
+needs = ["plan"]
+description = """
+Work the children of this epic (`bd ready --exclude-label human`), via subagent-driven development or inline; TDD; one commit per task.
+Decisions -> decision beads. Close each child as it lands. Close this epic when every child is closed.
+"""
+
+[[steps]]
+id = "review-pr"
+title = "Review and open PR for {{name}}"
+labels = ["formula:feature"]
+needs = ["implement"]
+description = """
+1. requesting-code-review against the spec and plan; fix what it finds.
+2. Quality gates from AGENTS.md -> Build & Test.
+3. `bd export --include-memories > .beads/issues.jsonl`; commit; `bd dolt push`; `git push -u origin <branch>`.
+4. `gh pr create` (target branch: AGENTS.md -> Git). `bd update <this id> --notes "pr: <url>"`.
+5. `bd gate create --type=gh:pr --await-id <pr number> --timeout 168h --blocks <merge step id>`.
+Close this step.
+"""
+
+[[steps]]
+id = "merge"
+title = "Merge {{name}}"
+labels = ["formula:feature"]
+needs = ["review-pr"]
+description = """
+Blocked by the gh:pr gate until a human merges the PR; `bd gate check` (session start, or by hand) resolves it.
+Then confirm (`gh pr view <n> --json state,mergeCommit`), `bd update <this id> --notes "merged: <sha>"`, close.
+"""
+
+[[steps]]
+id = "verify"
+title = "Verify {{name}} in the real app"
+labels = ["formula:feature", "human"]
+needs = ["merge"]
+description = """
+Human: check the feature where it runs (staging/prod). Close with a comment on what you saw.
+If it is wrong: `bd create -t bug ...` (or reopen implement children) and leave this open.
+"""
+
+[[steps]]
+id = "wrap-up"
+title = "Wrap up {{name}}"
+labels = ["formula:feature"]
+needs = ["verify"]
+description = """
+File follow-up beads for anything deferred (`--parent` / `bd dep add` as appropriate). `bd remember` anything durable learned.
+Confirm docs (architecture.md, runbooks) reflect the change. `bd export --include-memories > .beads/issues.jsonl`; commit;
+`bd dolt push`; push. Close this step, then the molecule root (`bd mol current`).
+"""

@@ -88,7 +88,7 @@ created at `review-pr` time with `bd gate create --type=gh:pr --await-id <pr>
 | `verify` | Verify fix for {{bug}} | task, label `human` | merge | — | as in `feature` |
 | `wrap-up` | Wrap up {{bug}} | task | verify | — | Close `{{bug}}` with `--reason` pointing at the PR; `bd remember` if the root cause generalises; close the molecule root. |
 
-Vars: `bug` (required, pattern `^[a-z0-9-]+-[a-z0-9.]+$`).
+Vars: `bug` (required, pattern `^[A-Za-z0-9_.-]+$`).
 Flat steps as in `feature`, labels `["formula:bugfix"]`. In `reproduce` the
 agent runs `bd dep add {{bug}} <molecule root id>` so the bug shows as blocked
 by its fix; `wrap-up` closes the bug.

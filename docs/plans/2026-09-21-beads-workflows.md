@@ -217,7 +217,7 @@ type = "workflow"
 [vars.bug]
 description = "The bug bead this molecule fixes, e.g. theostack-go-3yxo"
 required = true
-pattern = "^[a-z0-9-]+-[a-z0-9.]+$"
+pattern = "^[A-Za-z0-9_.-]+$"
 
 [[steps]]
 id = "reproduce"
