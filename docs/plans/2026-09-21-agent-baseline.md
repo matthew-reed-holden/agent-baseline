@@ -733,7 +733,7 @@ r = apply(); assert r.returncode != 0 and "db: env PGURL" in r.stderr, r.stdout 
 # non-TTY without answers or --yes is an error
 shutil.rmtree(tmp); tmp.mkdir(); shutil.copytree(here / "test" / "fixture", tmp, dirs_exist_ok=True)
 subprocess.run(["git", "init", "-q"], cwd=tmp, check=True)
-r = apply(); assert r.returncode == 2 and "unanswered var PROJECT_SUMMARY" in r.stderr, r.stdout + r.stderr
+r = apply(); assert r.returncode == 2 and "unanswered var PROJECT_NAME" in r.stderr, r.stdout + r.stderr
 
 shutil.rmtree(tmp)
 print("selftest: ok")
@@ -1016,7 +1016,7 @@ Expected: `{"isTemplate":true,"visibility":"PUBLIC"}`.
 cd ~/code/theostack/theostack-go-hygiene
 ~/code/agent-baseline/apply.sh --check --stack go --var PROJECT_NAME=theostack-go --var "PROJECT_SUMMARY=Go backend for TheoStack" --var PR_TARGET_BRANCH=main --var "DATABASE_URL_DEFAULT=postgres://theostack:theostack@localhost:5433/theostack?sslmode=disable" .
 ```
-Expected: exit 1 with diffs for `.codex/config.toml` (header line, postgres `env_vars` line dropped in favour of the literal default, key order), `opencode.json` (new), `.beads/formulas/.gitkeep`, `agents/README.md`, `docs/README.md`; `.claude/settings.json` and `.beads/PRIME.md` and `AGENTS.md` show **no** diff; env check `✓ THEOSTACK_MCP_TOKEN`, `· DATABASE_URL`.
+Expected: exit 1 with diffs for `.codex/config.toml` (header line, postgres `env_vars` line dropped in favour of the literal default, key order), `opencode.json` (new), `.beads/formulas/.gitkeep`, `agents/README.md`, `docs/README.md`; `.claude/settings.json` differs only by `enabledMcpjsonServers` being sorted; `.beads/PRIME.md` and `AGENTS.md` show **no** diff; env check `✓ THEOSTACK_MCP_TOKEN`, `· DATABASE_URL`.
 
 - [ ] **Step 2: Apply, review, verify**
 
