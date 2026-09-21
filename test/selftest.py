@@ -34,7 +34,7 @@ assert "agent.profile: team-maintainer" in (tmp / ".beads" / "config.yaml").read
 s = json.loads((tmp / ".claude" / "settings.json").read_text())
 assert s["permissions"] == {"allow": ["Bash(go test *)"]}, s
 assert s["enabledMcpjsonServers"] == ["api", "db"] and s["enabledPlugins"] == {"gopls-lsp@claude-plugins-official": True}
-assert s["hooks"]["SessionStart"][0]["hooks"][0]["command"] == "bd prime --hook-json"
+assert s["hooks"]["SessionStart"][0]["hooks"][0]["command"] == "bd gate check >/dev/null 2>&1; bd prime --hook-json"
 
 # generated
 c = (tmp / ".codex" / "config.toml").read_text()

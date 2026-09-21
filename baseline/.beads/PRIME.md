@@ -24,6 +24,19 @@ Agents **may not**: commit to or merge into `main`/`dev`, merge PRs, force-push,
 - `bd remember "insight"` for durable knowledge; `bd memories <keyword>` to search. No MEMORY.md files.
 - Epic rollup notes go stale: `bd show` the member issue before acting on what an epic says about it.
 - Never `bd edit` (opens $EDITOR and blocks).
+- **Ask, don't assume.** Any choice that changes behaviour, scope, cost or design is a `decision` bead
+  that blocks your current step - then stop, or take other ready work. Non-blocking "FYI I chose X" is a
+  `--notes` line. Recipe:
+  ```
+  bd create -t decision --labels human --parent <current> --title "<question>" --description "<context, options, my lean>"
+  bd dep add <current> <decision id>
+  ```
+  The human answers with `bd human respond <id> "..."`, which closes it and unblocks you.
+- **Pour by shape.** Architectural work: `bd mol pour feature --var name=<slug> --var summary="..."`.
+  A bug bead: `bd mol pour bugfix --var bug=<id>`. A bounded change: one plain bead, no formula.
+  `bd mol current` shows where you are; `bd ready --exclude-label human` is how agents find work -
+  never claim a bead labeled `human`, those are the human's steps.
+- **Gates.** `bd gate check` runs at session start; run it by hand after a merge to unblock the next step now.
 
 ## Session close protocol — run before saying "done"
 
@@ -44,7 +57,10 @@ If `bd dolt push` fails (HTTP 403 in remote sessions), say so in the hand-off: t
 ## Essential commands
 
 ```bash
-bd ready                         # unblocked work
+bd ready --exclude-label human   # unblocked agent work (human-labeled beads are the human's)
+bd mol current                   # where am I in the current molecule
+bd human list | bd human respond <id> "..."   # the human's queue; answering closes the bead
+bd create -t decision --labels human --parent <id> --title "..." --description "..."   # ask, don't assume
 bd show <id>                     # details + deps
 bd update <id> --claim           # claim (atomic)
 bd create --title="..." --description="why + what" -t task|bug|feature|chore|epic -p 0-4 [--parent=<id>]
@@ -54,7 +70,7 @@ bd dep add <issue> <depends-on>  # issue is blocked by depends-on
 bd blocked | bd stale | bd orphans | bd preflight
 bd search <query> | bd list --status=open --label=<l>
 bd human <id>                    # flag a decision for a human
-bd formula list | bd mol pour <formula> --var k=v   # structured workflows
+bd formula list | bd mol pour feature|bugfix --var k=v   # structured workflows (see Pour by shape)
 bd gate list | bd gate resolve <id>                  # async waits (human, timer, gh:pr)
 bd todo add "..." | bd todo | bd todo done <id>      # scratch tasks
 ```

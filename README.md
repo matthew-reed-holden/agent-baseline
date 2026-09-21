@@ -46,9 +46,25 @@ target format can't express rather than dropping it silently — e.g. Codex
 can forward an env var only under its own name, so
 `"PGURL": "${DATABASE_URL}"` needs a `:-default` or a rename.
 
+## Workflows
+
+`baseline/.beads/formulas/` ships two formulas, owned (re-applied on every
+apply): `feature` (brainstorm → **approve** → spec → **approve** → plan →
+implement → review+PR → merge via `gh:pr` gate → **verify** → wrap up) and
+`bugfix` (reproduce → fix → review+PR → merge → **verify** → wrap up). Bold
+steps carry the `human` label: `bd human list` is the human's queue, and
+agents find work with `bd ready --exclude-label human`. Questions become
+`decision` beads that block the step (`bd human respond` answers them).
+Rules live in `.beads/PRIME.md`; `test/formulas.sh` pours both into a scratch
+repo.
+
+Session start runs `bd gate check` before `bd prime` in Claude Code and
+Codex — `baseline/.codex/hooks.json` differs from raw `bd setup codex` output
+by exactly that prefix; re-apply it when refreshing the vendored file.
+
 ## Maintain the template
 
-- `./apply.sh --self-test` and `python3 -m unittest` before pushing.
+- `./apply.sh --self-test`, `./test/formulas.sh` and `python3 -m unittest` before pushing.
 - `baseline/.codex/hooks.json` and `baseline/.agents/skills/beads/` are
   `bd setup codex` output. Refresh after a bd upgrade: `bd setup codex` in a
   scratch repo, copy the two paths in, commit.

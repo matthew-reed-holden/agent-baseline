@@ -104,7 +104,7 @@ def render_opencode(mcp):
 def merge_settings(path, mcp_names, plugins):
     d = json.loads(path.read_text()) if path.exists() else {}
     d.setdefault("hooks", {})["SessionStart"] = [
-        {"matcher": "", "hooks": [{"type": "command", "command": "bd prime --hook-json"}]}
+        {"matcher": "", "hooks": [{"type": "command", "command": "bd gate check >/dev/null 2>&1; bd prime --hook-json"}]}
     ]
     d["enabledMcpjsonServers"] = sorted(mcp_names)
     d["enabledPlugins"] = {**d.get("enabledPlugins", {}), **{p: True for p in plugins}}  # add, never drop

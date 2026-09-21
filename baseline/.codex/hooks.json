@@ -28,7 +28,7 @@
       {
         "hooks": [
           {
-            "command": "bd codex-hook SessionStart",
+            "command": "bd gate check >/dev/null 2>&1; bd codex-hook SessionStart",
             "statusMessage": "Loading Beads context",
             "type": "command"
           }

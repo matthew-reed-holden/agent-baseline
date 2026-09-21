@@ -69,7 +69,7 @@ class Settings(unittest.TestCase):
             self.assertEqual(s["permissions"], {"allow": ["Bash(ls)"]})
             self.assertEqual(s["enabledMcpjsonServers"], ["a", "b"])
             self.assertEqual(s["enabledPlugins"], {"old@x": True, "p@x": True})
-            self.assertEqual(s["hooks"]["SessionStart"][0]["hooks"][0]["command"], "bd prime --hook-json")
+            self.assertEqual(s["hooks"]["SessionStart"][0]["hooks"][0]["command"], "bd gate check >/dev/null 2>&1; bd prime --hook-json")
 
     def test_merge_creates_file(self):
         with tempfile.TemporaryDirectory() as d:
