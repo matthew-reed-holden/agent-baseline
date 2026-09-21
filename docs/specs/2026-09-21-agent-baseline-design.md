@@ -151,8 +151,9 @@ Env references are `${VAR}` or `${VAR:-default}`.
 |---|---|---|
 | `type: stdio`, `command`, `args` | `command = …`, `args = […]` | `type: "local"`, `command: [cmd, …args]` |
 | `type: http` / `sse`, `url` | `url = …` | `type: "remote"`, `url` |
-| `env.K = "${V}"` | `env_vars = ["V"]` (K must equal V; else error) | `environment.K = "{env:V}"` |
-| `env.K = "${V:-d}"` | `env_vars = ["V"]` + `env.K = "d"` | `environment.K = "{env:V}"` (no default; noted in env check) |
+| `env.K = "${V}"` | `env_vars = ["V"]` (K must equal V; else hard error unless a default is given) | `environment.K = "{env:V}"` |
+| `env.K = "${K:-d}"` (key = var) | `env_vars = ["K"]` + `env.K = "d"` | `environment.K = "{env:K}"` (no default; noted in env check) |
+| `env.K = "${V:-d}"` (key ≠ var) | `env.K = "d"` — Codex cannot remap; default only | `environment.K = "{env:V}"` |
 | `env.K = "literal"` | `env.K = "literal"` | `environment.K = "literal"` |
 | `headers.Authorization = "Bearer ${V}"` | `bearer_token_env_var = "V"` | `headers.Authorization = "Bearer {env:V}"` |
 | other `headers.H = "${V}"` | unsupported: hard error | `headers.H = "{env:V}"` |
