@@ -1,0 +1,5 @@
+[
+  { "name": "PROJECT_NAME",     "prompt": "Project name (AGENTS.md title)",          "default": "" },
+  { "name": "PROJECT_SUMMARY",  "prompt": "One-sentence description of the repo",   "default": "Describe this repo in one sentence." },
+  { "name": "PR_TARGET_BRANCH", "prompt": "Branch that PRs target",                  "default": "main" }
+]
