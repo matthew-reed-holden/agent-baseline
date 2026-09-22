@@ -29,6 +29,7 @@ assert "PR-only" in (tmp / ".beads" / "PRIME.md").read_text()
 assert (tmp / ".beads" / "formulas" / "feature.formula.toml").exists()
 assert (tmp / ".codex" / "hooks.json").exists() and (tmp / ".agents" / "skills" / "beads" / "SKILL.md").exists()
 assert "agent.profile: team-maintainer" in (tmp / ".beads" / "config.yaml").read_text()
+assert ".worktrees/" in (tmp / ".gitignore").read_text()
 
 # merged settings: foreign key preserved, owned keys set
 s = json.loads((tmp / ".claude" / "settings.json").read_text())

@@ -36,7 +36,8 @@ check at the end of every apply tells you what to export.
 | generated | `.codex/config.toml`, `opencode.json`, `.claude/agents/`, `.opencode/agents/` | from `.mcp.json` / `agents/`; don't edit |
 | merged | `.claude/settings.json` | only `hooks.SessionStart`, `enabledMcpjsonServers`, `enabledPlugins` are touched; overlay plugins are added, existing ones kept |
 
-`.beads/config.yaml` gets `agent.profile: team-maintainer` appended if absent.
+`.beads/config.yaml` gets `agent.profile: team-maintainer` appended if absent;
+`.gitignore` gets `.worktrees/` appended if absent (agents work in `.worktrees/<slug>`).
 
 ## Edit the source, not the output
 

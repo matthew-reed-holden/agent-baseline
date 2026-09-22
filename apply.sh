@@ -106,11 +106,14 @@ pipeline() {  # $1 target dir: copy + render
   if [[ -f $t/.beads/config.yaml ]] && ! grep -q '^agent.profile:' "$t/.beads/config.yaml"; then
     printf '\n# Agents commit/push feature branches and open PRs; merging is human-only (.beads/PRIME.md).\nagent.profile: team-maintainer\n' >> "$t/.beads/config.yaml"
   fi
+  if ! grep -qsx '\.worktrees/\?' "$t/.gitignore"; then
+    printf '\n# agent worktrees (PRIME.md -> Worktrees)\n.worktrees/\n' >> "$t/.gitignore"
+  fi
   python3 "$here/render.py" render "$t" ${overlay_json:+--overlay "$overlay_json"}
 }
 
 # every path the pipeline may write, for --check
-paths=(.codex/config.toml opencode.json .claude/settings.json .beads/config.yaml .claude/agents .opencode/agents)
+paths=(.codex/config.toml opencode.json .claude/settings.json .beads/config.yaml .gitignore .claude/agents .opencode/agents)
 while read -r path mode; do [[ -z $path || $path == \#* ]] || paths+=("$path"); done < "$here/manifest"
 while IFS= read -r -d '' f; do paths+=("${f#"$overlay_dir/"}"); done < <(overlay_files)
 
