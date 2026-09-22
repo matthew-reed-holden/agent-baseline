@@ -549,7 +549,7 @@ if __name__ == "__main__":
 - [ ] **Step 4: Run tests**
 
 Run: `chmod +x bd-workflow-exporter.py && python3 -m unittest test.test_exporter -v 2>&1 | tail -3`
-Expected: `OK` (10 tests). If `test_durations` fails on `approve-approach`, check that human steps use `created_at` even when `started_at` exists.
+Expected: `OK` (8 tests). If `test_durations` fails on `approve-approach`, check that human steps use `created_at` even when `started_at` exists.
 
 - [ ] **Step 5: systemd units**
 
@@ -645,7 +645,7 @@ curl -s 'http://127.0.0.1:9090/api/v1/label/__name__/values' | python3 -c 'impor
 curl -s 'http://127.0.0.1:9090/api/v1/query?query={__name__=~"claude_code_cost_usage.*",repo="theostack-go"}' | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["data"]["result"]),"series with repo label")'
 curl -s -G 'http://127.0.0.1:3100/loki/api/v1/query_range' --data-urlencode 'query={service_name="claude-code"} |= "claude_code.api_request"' --data-urlencode 'limit=1' | python3 -c 'import json,sys;print(len(json.load(sys.stdin)["data"]["result"]),"log streams")'
 ```
-Expected: a list of `claude_code_*` names; `>= 1 series with repo label` (if 0, the transform processor did not apply — see Task 1 Step 5 fallback); `1 log streams`. **Record the exact metric names printed** — Task 4's dashboards use regexes, but README's QUERIES.md should quote the real names.
+Expected: a list of `claude_code_*` names; `>= 1 series with repo label` (if 0, the transform processor did not apply — see Task 1 Step 5 fallback); `1 log streams` (if 0, run the same query with only `{service_name="claude-code"}`, read one raw line, and note where the event name lives — body or an attribute such as `event_name` — then adjust the `|=` filters in Task 4 and QUERIES.md to match). **Record the exact metric names printed** — Task 4's dashboards use regexes, but README's QUERIES.md should quote the real names.
 
 - [ ] **Step 4: Commit**
 
