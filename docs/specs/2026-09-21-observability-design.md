@@ -87,7 +87,7 @@ Derives, then POSTs one OTLP/JSON `ExportMetricsServiceRequest` to
 | `workflow_human_queue` | repo | open beads with label `human` |
 | `workflow_decisions_total` | repo, status | `issue_type=decision` |
 | `workflow_decision_answer_seconds_p50/_p90/_count` | repo | closed decisions: `closed_at - created_at` |
-| `workflow_bugs_closed_total` | repo, via | closed bugs; via=`bugfix` if any bead labeled `formula:bugfix` has the bug id in its title/notes or the bug has a dependent molecule, else `plain` |
+| `workflow_bugs_closed_total` | repo, via | closed bugs; via=`bugfix` if any bead labeled `formula:bugfix` carries the bug id in its title (the formula's step titles do), else `plain` |
 | `workflow_gates_open` | repo, type | `bd gate list` |
 | `workflow_stale_in_progress` | repo | in_progress beads with `updated_at` older than 24h |
 | `workflow_exporter_last_success_timestamp_seconds` | repo | now, on success |
