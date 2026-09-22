@@ -37,6 +37,9 @@ Agents **may not**: commit to or merge into `main`/`dev`, merge PRs, force-push,
   `bd mol current` shows where you are; `bd ready --exclude-label human` is how agents find work -
   never claim a bead labeled `human`, those are the human's steps.
 - **Gates.** `bd gate check` runs at session start; run it by hand after a merge to unblock the next step now.
+- **Worktrees.** Work in a worktree you created, branched from `origin/<base>` (`git worktree add ../<repo>-<slug> -b <branch> origin/<base>`),
+  never from the current HEAD: a stale checkout produces a stale worktree with none of this. Never `git checkout`/`switch`
+  in a checkout you did not create - another session may be working in it.
 
 ## Session close protocol — run before saying "done"
 
