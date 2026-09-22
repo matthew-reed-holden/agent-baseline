@@ -33,7 +33,9 @@ Agents **may not**: commit to or merge into `main`/`dev`, merge PRs, force-push,
   ```
   The human answers with `bd human respond <id> "..."`, which closes it and unblocks you.
 - **Pour by shape.** Architectural work: `bd mol pour feature --var name=<slug> --var summary="..."`.
-  A bug bead: `bd mol pour bugfix --var bug=<id>`. A bounded change: one plain bead, no formula.
+  Any bead of type `bug`, however small: `bd mol pour bugfix --var bug=<id>` - "bounded" never exempts a bug.
+  A bounded non-bug change: one plain bead, no formula. Approvals and questions go through beads even when
+  the answer is one word - chat is not state.
   `bd mol current` shows where you are; `bd ready --exclude-label human` is how agents find work -
   never claim a bead labeled `human`, those are the human's steps.
 - **Gates.** `bd gate check` runs at session start; run it by hand after a merge to unblock the next step now.
