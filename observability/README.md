@@ -24,8 +24,20 @@ your user-level MCP servers so every harness can query it.
 | Claude Code | `env.sh` | tool details + prompts on; responses/bodies off |
 | bd | `env.sh` (`BD_OTEL_ENABLED=true`) | operational metrics (`bd_*`) |
 | beads workflow exporter | timer | `workflow_*` gauges, see QUERIES.md |
-| Codex | `~/.codex/config.toml`: `[otel]` `exporter = "otlp-http"`, `exporter.otlp-http.endpoint = "http://localhost:4318"`, `log_user_prompt = true` | user config; Codex ignores project-level provider keys |
-| Per repo | `apply.sh` sets `env.OTEL_RESOURCE_ATTRIBUTES=repo=<name>` in `.claude/settings.json` | the `repo` label on every series |
+| Codex | `~/.codex/config.toml` (block below) | user config; events (`codex.api_request` with model and token counts) land in Loki as `service_name="codex_exec"`; Codex metrics do not arrive from short `exec` runs, and there is no cost field |
+| `repo` label | `env.sh` `chpwd` hook sets `OTEL_RESOURCE_ATTRIBUTES=repo=<main clone name>` on every `cd` (worktrees resolve to their clone) | applies to Claude, Codex and bd launched from that shell; `apply.sh` also writes it into `.claude/settings.json` |
+
+Codex `[otel]` (Codex takes explicit per-signal endpoints, not `OTEL_EXPORTER_*`;
+its default metrics exporter is statsig, i.e. OpenAI):
+
+```toml
+[otel]
+environment = "shadowfax"
+log_user_prompt = true
+exporter = { otlp-http = { endpoint = "http://localhost:4318/v1/logs", protocol = "binary" } }
+trace_exporter = { otlp-http = { endpoint = "http://localhost:4318/v1/traces", protocol = "binary" } }
+metrics_exporter = { otlp-http = { endpoint = "http://localhost:4318/v1/metrics", protocol = "binary" } }
+```
 
 ## Another machine (e.g. the Mac)
 

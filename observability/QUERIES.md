@@ -30,3 +30,4 @@ Two things to know before writing new ones:
 | Slowest steps (h) | `topk(5, workflow_step_duration_seconds_p50 / 3600)` |
 | Bugfix adoption | `sum by (repo, via) (workflow_bugs_closed_total)` |
 | Exporter freshness (s) | `time() - workflow_exporter_last_success_timestamp_seconds` |
+| Codex tokens by model, 24h (Loki) | `sum by (model) (sum_over_time({service_name="codex_exec"} \| event_name="codex.api_request" \| unwrap output_token_count [24h]))` |
