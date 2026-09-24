@@ -7,6 +7,8 @@ here = Path(sys.argv[1]).resolve()
 tmp = Path(tempfile.mkdtemp())
 shutil.copytree(here / "test" / "fixture", tmp, dirs_exist_ok=True)
 subprocess.run(["git", "init", "-q"], cwd=tmp, check=True)
+(tmp / ".beads" / "issues.jsonl").write_text("{}\n")
+subprocess.run(["git", "add", ".beads/issues.jsonl"], cwd=tmp, check=True)
 env = {k: v for k, v in os.environ.items() if k not in ("DATABASE_URL", "API_TOKEN")}
 
 
@@ -30,6 +32,12 @@ assert (tmp / ".beads" / "formulas" / "feature.formula.toml").exists()
 assert (tmp / ".codex" / "hooks.json").exists() and (tmp / ".agents" / "skills" / "beads" / "SKILL.md").exists()
 assert "agent.profile: team-maintainer" in (tmp / ".beads" / "config.yaml").read_text()
 assert ".worktrees/" in (tmp / ".gitignore").read_text()
+# Dolt-only sync: JSONL gitignored, untracked (file kept), export pinned off
+assert "issues.jsonl" in (tmp / ".beads" / ".gitignore").read_text()
+assert subprocess.run(["git", "ls-files", ".beads/issues.jsonl"], cwd=tmp, capture_output=True, text=True).stdout == ""
+assert (tmp / ".beads" / "issues.jsonl").exists()
+cfg = (tmp / ".beads" / "config.yaml").read_text()
+assert "export.auto: false" in cfg and "export.git-add: false" in cfg, cfg
 
 # merged settings: foreign key preserved, owned keys set
 s = json.loads((tmp / ".claude" / "settings.json").read_text())
@@ -60,6 +68,13 @@ r = apply("--check"); assert r.returncode == 1 and "opencode.json" in r.stdout, 
 
 # re-apply repairs it and asks nothing (answers come from the stamp)
 r = apply(); assert r.returncode == 0 and "mcp" in (tmp / "opencode.json").read_text(), r.stdout + r.stderr
+
+# guard: a repo-local edit to an owned file blocks apply until upstreamed or --force
+prime = tmp / ".beads" / "PRIME.md"
+prime.write_text(prime.read_text() + "\nlocal rule\n")
+r = apply(); assert r.returncode != 0 and ".beads/PRIME.md" in r.stderr and "--force" in r.stderr, r.stdout + r.stderr
+assert "local rule" in prime.read_text()
+r = apply("--force"); assert r.returncode == 0 and "local rule" not in prime.read_text(), r.stdout + r.stderr
 
 # hard error from render.py surfaces with a non-zero exit
 bad = json.loads((tmp / ".mcp.json").read_text()); bad["mcpServers"]["db"]["env"] = {"PGURL": "${DATABASE_URL}"}

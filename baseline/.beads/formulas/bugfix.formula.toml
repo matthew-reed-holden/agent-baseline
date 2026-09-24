@@ -35,7 +35,7 @@ labels = ["formula:bugfix"]
 needs = ["fix"]
 description = """
 1. requesting-code-review; fix what it finds. 2. Quality gates from AGENTS.md -> Build & Test.
-3. `bd export --include-memories > .beads/issues.jsonl`; commit; `bd dolt push`; `git push -u origin <branch>`.
+3. Commit (code only, never .beads/issues.jsonl); `bd dolt push`; `git push -u origin <branch>`.
 4. `gh pr create` (target: AGENTS.md -> Git); `bd update <this id> --notes "pr: <url>"`.
 5. `bd gate create --type=gh:pr --await-id <pr number> --timeout 168h --blocks <merge step id>`. Close.
 """
@@ -65,5 +65,5 @@ labels = ["formula:bugfix"]
 needs = ["verify"]
 description = """
 `bd close {{bug}} --reason "fixed in <pr url>"`. `bd remember` if the root cause generalises.
-`bd export --include-memories > .beads/issues.jsonl`; commit; `bd dolt push`; push. Close this step, then the molecule root.
+`bd dolt push`. Close this step, then the molecule root.
 """

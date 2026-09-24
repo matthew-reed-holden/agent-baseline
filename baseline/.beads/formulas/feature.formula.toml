@@ -87,7 +87,7 @@ needs = ["implement"]
 description = """
 1. requesting-code-review against the spec and plan; fix what it finds.
 2. Quality gates from AGENTS.md -> Build & Test.
-3. `bd export --include-memories > .beads/issues.jsonl`; commit; `bd dolt push`; `git push -u origin <branch>`.
+3. Commit (code only, never .beads/issues.jsonl); `bd dolt push`; `git push -u origin <branch>`.
 4. `gh pr create` (target branch: AGENTS.md -> Git). `bd update <this id> --notes "pr: <url>"`.
 5. `bd gate create --type=gh:pr --await-id <pr number> --timeout 168h --blocks <merge step id>`.
 Close this step.
@@ -120,6 +120,6 @@ labels = ["formula:feature"]
 needs = ["verify"]
 description = """
 File follow-up beads for anything deferred (`--parent` / `bd dep add` as appropriate). `bd remember` anything durable learned.
-Confirm docs (architecture.md, runbooks) reflect the change. `bd export --include-memories > .beads/issues.jsonl`; commit;
-`bd dolt push`; push. Close this step, then the molecule root (`bd mol current`).
+Confirm docs (architecture.md, runbooks) reflect the change; commit and push any doc edits.
+`bd dolt push`. Close this step, then the molecule root (`bd mol current`).
 """

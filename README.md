@@ -38,6 +38,13 @@ check at the end of every apply tells you what to export.
 
 `.beads/config.yaml` gets `agent.profile: team-maintainer` appended if absent;
 `.gitignore` gets `.worktrees/` appended if absent (agents work in `.worktrees/<slug>`).
+`.beads/.gitignore` gets `issues.jsonl` and `.beads/config.yaml` gets
+`export.auto: false` / `export.git-add: false`; a tracked `.beads/issues.jsonl`
+is untracked (file kept). Dolt (`refs/dolt/data`) is the only issue sync.
+
+**Owned files are upstream-only.** If a repo edits one (PRIME.md, a formula,
+the Codex hooks) and then runs apply, apply refuses and lists them: move the
+change into `baseline/` here first, or pass `--force` to discard it.
 
 ## Edit the source, not the output
 

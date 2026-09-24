@@ -5,22 +5,24 @@ here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 usage() {
   cat <<USAGE
-usage: apply.sh [--stack go|node] [--check] [--yes] [--var NAME=VALUE]... [--self-test] [DIR]
+usage: apply.sh [--stack go|node] [--check] [--yes] [--force] [--var NAME=VALUE]... [--self-test] [DIR]
   --stack S    layer overlays/S on top of baseline (remembered in .agent-baseline)
   --check      report drift (diff + env check); exit 1 if any; changes nothing
   --yes        take defaults for unanswered vars (required when not on a TTY)
   --var K=V    answer a var explicitly (repeatable)
+  --force      overwrite owned files even if this repo edited them since the last apply
   --self-test  run test/selftest.py against test/fixture in a temp dir
 USAGE
 }
 
-stack="" check=0 yes=0 selftest=0 dir="."
+stack="" check=0 yes=0 selftest=0 force=0 dir="."
 declare -A var_cli=()
 while [[ $# -gt 0 ]]; do
   case $1 in
     --stack) stack=$2; shift 2 ;;
     --check) check=1; shift ;;
     --yes) yes=1; shift ;;
+    --force) force=1; shift ;;
     --var) var_cli[${2%%=*}]=${2#*=}; shift 2 ;;
     --self-test) selftest=1; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -106,6 +108,12 @@ pipeline() {  # $1 target dir: copy + render
   if [[ -f $t/.beads/config.yaml ]] && ! grep -q '^agent.profile:' "$t/.beads/config.yaml"; then
     printf '\n# Agents commit/push feature branches and open PRs; merging is human-only (.beads/PRIME.md).\nagent.profile: team-maintainer\n' >> "$t/.beads/config.yaml"
   fi
+  if [[ -d $t/.beads ]] && ! grep -qsx 'issues\.jsonl' "$t/.beads/.gitignore"; then
+    printf '\n# Optional export, never committed: Dolt (refs/dolt/data) is the only sync.\nissues.jsonl\n' >> "$t/.beads/.gitignore"
+  fi
+  if [[ -f $t/.beads/config.yaml ]] && ! grep -q '^export\.auto:' "$t/.beads/config.yaml"; then
+    printf '\n# issues.jsonl is never committed; pinned so a bd upgrade cannot re-enable the export.\nexport.auto: false\nexport.git-add: false\n' >> "$t/.beads/config.yaml"
+  fi
   if ! grep -qsx '\.worktrees/\?' "$t/.gitignore"; then
     printf '\n# agent worktrees (PRIME.md -> Worktrees)\n.worktrees/\n' >> "$t/.gitignore"
   fi
@@ -113,7 +121,7 @@ pipeline() {  # $1 target dir: copy + render
 }
 
 # every path the pipeline may write, for --check
-paths=(.codex/config.toml opencode.json .claude/settings.json .beads/config.yaml .gitignore .claude/agents .opencode/agents)
+paths=(.codex/config.toml opencode.json .claude/settings.json .beads/config.yaml .beads/.gitignore .gitignore .claude/agents .opencode/agents)
 while read -r path mode; do [[ -z $path || $path == \#* ]] || paths+=("$path"); done < "$here/manifest"
 while IFS= read -r -d '' f; do paths+=("${f#"$overlay_dir/"}"); done < <(overlay_files)
 
@@ -136,7 +144,43 @@ if (( check )); then
 fi
 
 # ---- apply -----------------------------------------------------------------------
+# Refuse to clobber owned files this repo edited since the last apply: such edits
+# belong upstream in agent-baseline, or they silently revert on the next apply.
+if [[ -f $stamp ]] && (( ! force )); then
+  sha=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("template",""))' "$stamp")
+  if git -C "$here" cat-file -e "$sha^{commit}" 2>/dev/null; then
+    python3 - "$here" "$dir" "$sha" <<'PY' || exit 2
+import os, subprocess, sys
+here, d, sha = sys.argv[1:]
+base = os.path.join(here, "baseline")
+owned = [l.split()[0] for l in open(os.path.join(here, "manifest"))
+         if l.strip() and not l.startswith("#") and l.split()[1] == "owned"]
+def at_stamp(p):
+    r = subprocess.run(["git", "-C", here, "show", f"{sha}:baseline/{p}"], capture_output=True)
+    return r.stdout if r.returncode == 0 else None
+edited = []
+for o in owned:
+    src = os.path.join(base, o)
+    files = [os.path.relpath(os.path.join(r, f), base) for r, _, fs in os.walk(src) for f in fs] if os.path.isdir(src) else [o]
+    for p in files:
+        dst = os.path.join(d, p)
+        if os.path.islink(dst) or not os.path.isfile(dst):
+            continue
+        cur = open(dst, "rb").read()
+        if cur != open(os.path.join(base, p), "rb").read() and cur != at_stamp(p):
+            edited.append(p)
+if edited:
+    sys.exit("apply.sh: owned files edited in this repo since the last apply:\n  " + "\n  ".join(edited)
+             + "\nupstream the change to agent-baseline (baseline/<path>) first, or re-run with --force")
+PY
+  else
+    echo "apply.sh: stamped template $sha not in agent-baseline history; skipping local-edit check" >&2
+  fi
+fi
 pipeline "$dir"
+if git -C "$dir" ls-files --error-unmatch .beads/issues.jsonl >/dev/null 2>&1; then
+  git -C "$dir" rm -q --cached .beads/issues.jsonl && echo "apply.sh: untracked .beads/issues.jsonl (Dolt is the only sync; file kept)"
+fi
 echo "env check:"; python3 "$here/render.py" envcheck "$dir" || true
 python3 - "$stamp" "$(git -C "$here" rev-parse --short HEAD)" "$stack" ${ans_argv[@]+"${ans_argv[@]}"} <<'PY'
 import datetime, json, sys
