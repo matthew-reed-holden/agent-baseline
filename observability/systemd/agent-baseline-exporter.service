@@ -1,0 +1,6 @@
+[Unit]
+Description=agent-baseline beads workflow exporter
+[Service]
+Type=oneshot
+EnvironmentFile=@HERE@/.env
+ExecStart=/bin/sh -c 'python3 @HERE@/bd-workflow-exporter.py --endpoint "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://localhost:4318}" $REPOS'

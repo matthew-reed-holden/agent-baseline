@@ -1,0 +1,7 @@
+[Unit]
+Description=agent-baseline beads workflow exporter (5 min)
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+[Install]
+WantedBy=timers.target
