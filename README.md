@@ -63,6 +63,12 @@ Session start runs `bd gate check` before `bd prime` in Claude Code and
 Codex — `baseline/.codex/hooks.json` differs from raw `bd setup codex` output
 by exactly that prefix; re-apply it when refreshing the vendored file.
 
+## Observability
+
+`observability/` runs a local OTel stack (Grafana + Prometheus + Loki via
+`otel-lgtm`) fed by Claude Code, Codex, bd and a beads workflow exporter, with
+an MCP server so agents can query it. See `observability/README.md`.
+
 ## Maintain the template
 
 - `./apply.sh --self-test`, `./test/formulas.sh` and `python3 -m unittest` before pushing.
