@@ -9,6 +9,7 @@ and do, and how the beads workflows perform. One container each for
 
     cp .env.example .env         # set GRAFANA_ADMIN_PASSWORD and REPOS
     ./setup.sh up                # stack
+    ./setup.sh mcp-token         # read-only Viewer token for mcp-grafana (first run only)
     ./setup.sh install-timer     # beads exporter every 5 min (systemd --user)
     source env.sh                # producers: put this line in your shell init
 

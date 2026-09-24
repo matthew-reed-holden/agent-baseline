@@ -28,8 +28,8 @@ services:
       - "${BIND:-127.0.0.1}:8000:8000"
     environment:
       GRAFANA_URL: http://lgtm:3000
-      GRAFANA_USERNAME: admin
-      GRAFANA_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set in .env}
+      # Viewer-role service account: read-only whatever tools are exposed.
+      GRAFANA_SERVICE_ACCOUNT_TOKEN: ${GRAFANA_MCP_TOKEN:?run setup.sh mcp-token}
     # Least tool surface: keep search, datasource, prometheus, loki, dashboard, query.
     command: >
       -t streamable-http --address 0.0.0.0:8000
