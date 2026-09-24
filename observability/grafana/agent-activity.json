@@ -1,0 +1,242 @@
+{
+ "uid": "agent-activity",
+ "title": "Agent activity & cost",
+ "schemaVersion": 39,
+ "version": 1,
+ "editable": true,
+ "time": {
+  "from": "now-7d",
+  "to": "now"
+ },
+ "refresh": "1m",
+ "tags": [
+  "agent-baseline"
+ ],
+ "templating": {
+  "list": [
+   {
+    "name": "repo",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "prometheus"
+    },
+    "query": "label_values({__name__=~\"claude_code_cost_usage.*\"}, repo)",
+    "refresh": 2,
+    "includeAll": true,
+    "multi": true,
+    "current": {
+     "text": "All",
+     "value": "$__all"
+    }
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "stat",
+   "title": "Cost, last 24h (USD)",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "decimals": 2,
+     "unit": "currencyUSD"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(max_over_time({__name__=~\"claude_code_cost_usage.*\",repo=~\"$repo\"}[24h]))"
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "type": "stat",
+   "title": "Sessions, last 24h",
+   "gridPos": {
+    "x": 6,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(max_over_time({__name__=~\"claude_code_session_count.*\",repo=~\"$repo\"}[24h]))"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "Subagent share of cost (24h)",
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percentunit",
+     "decimals": 0
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(max_over_time({__name__=~\"claude_code_cost_usage.*\",repo=~\"$repo\",query_source=\"subagent\"}[24h])) / sum(max_over_time({__name__=~\"claude_code_cost_usage.*\",repo=~\"$repo\"}[24h]))"
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "type": "stat",
+   "title": "Commits / PRs (24h)",
+   "gridPos": {
+    "x": 18,
+    "y": 0,
+    "w": 6,
+    "h": 4
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(max_over_time({__name__=~\"claude_code_commit_count.*\",repo=~\"$repo\"}[24h]))",
+     "legendFormat": "commits"
+    },
+    {
+     "refId": "B",
+     "expr": "sum(max_over_time({__name__=~\"claude_code_pull_request_count.*\",repo=~\"$repo\"}[24h]))",
+     "legendFormat": "PRs"
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "type": "timeseries",
+   "title": "Cost per day by model",
+   "gridPos": {
+    "x": 0,
+    "y": 4,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "currencyUSD"
+    }
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right"
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (model) (max_over_time({__name__=~\"claude_code_cost_usage.*\",repo=~\"$repo\"}[1d]))",
+     "legendFormat": "{{model}}"
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "type": "timeseries",
+   "title": "Tokens per hour by type (session totals)",
+   "gridPos": {
+    "x": 12,
+    "y": 4,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (type) (max_over_time({__name__=~\"claude_code_token_usage.*\",repo=~\"$repo\"}[1h]))",
+     "legendFormat": "{{type}}"
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "type": "timeseries",
+   "title": "Tool results per hour (Loki)",
+   "gridPos": {
+    "x": 0,
+    "y": 12,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (tool_name) (count_over_time({service_name=\"claude-code\"} | event_name=\"tool_result\" [1h]))",
+     "legendFormat": "{{tool_name}}"
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "type": "logs",
+   "title": "Subagent runs (model, tokens)",
+   "gridPos": {
+    "x": 12,
+    "y": 12,
+    "w": 12,
+    "h": 8
+   },
+   "datasource": {
+    "type": "loki",
+    "uid": "loki"
+   },
+   "options": {
+    "wrapLogMessage": true,
+    "dedupStrategy": "none"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "{service_name=\"claude-code\"} | event_name=\"subagent_completed\" | line_format \"{{.agent_type}}  model={{.model}}  tokens={{.total_tokens}}  {{.duration_ms}}ms\""
+    }
+   ]
+  }
+ ],
+ "description": "Claude Code emits one cumulative counter per session_id, so totals are sum(max_over_time(x[window])) - increase() would miss each session's first export."
+}
