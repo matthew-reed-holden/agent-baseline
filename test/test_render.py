@@ -63,12 +63,13 @@ class Settings(unittest.TestCase):
     def test_merge_preserves_foreign_keys(self):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "settings.json"
-            p.write_text(json.dumps({"permissions": {"allow": ["Bash(ls)"]}, "enabledPlugins": {"old@x": True}}))
-            r.merge_settings(p, ["b", "a"], ["p@x"])
+            p.write_text(json.dumps({"permissions": {"allow": ["Bash(ls)"]}, "enabledPlugins": {"old@x": True}, "env": {"FOO": "1"}}))
+            r.merge_settings(p, ["b", "a"], ["p@x"], project="demo")
             s = json.loads(p.read_text())
             self.assertEqual(s["permissions"], {"allow": ["Bash(ls)"]})
             self.assertEqual(s["enabledMcpjsonServers"], ["a", "b"])
             self.assertEqual(s["enabledPlugins"], {"old@x": True, "p@x": True})
+            self.assertEqual(s["env"], {"FOO": "1", "OTEL_RESOURCE_ATTRIBUTES": "repo=demo"})
             self.assertEqual(s["hooks"]["SessionStart"][0]["hooks"][0]["command"], "bd gate check >/dev/null 2>&1; bd prime --hook-json")
 
     def test_merge_creates_file(self):

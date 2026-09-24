@@ -109,7 +109,7 @@ pipeline() {  # $1 target dir: copy + render
   if ! grep -qsx '\.worktrees/\?' "$t/.gitignore"; then
     printf '\n# agent worktrees (PRIME.md -> Worktrees)\n.worktrees/\n' >> "$t/.gitignore"
   fi
-  python3 "$here/render.py" render "$t" ${overlay_json:+--overlay "$overlay_json"}
+  python3 "$here/render.py" render "$t" ${overlay_json:+--overlay "$overlay_json"} --project "${answers[PROJECT_NAME]:-$(basename "$dir")}"
 }
 
 # every path the pipeline may write, for --check

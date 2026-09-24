@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render harness configs from a repo's .mcp.json (+ optional overlay). Stdlib only.
 
-usage: render.py render DIR [--overlay overlay.json]
+usage: render.py render DIR [--overlay overlay.json] [--project NAME]
        render.py envcheck DIR
 """
 import json
@@ -101,13 +101,15 @@ def render_opencode(mcp):
     return json.dumps({"$schema": "https://opencode.ai/config.json", "mcp": servers}, indent=2) + "\n"
 
 
-def merge_settings(path, mcp_names, plugins):
+def merge_settings(path, mcp_names, plugins, project=None):
     d = json.loads(path.read_text()) if path.exists() else {}
     d.setdefault("hooks", {})["SessionStart"] = [
         {"matcher": "", "hooks": [{"type": "command", "command": "bd gate check >/dev/null 2>&1; bd prime --hook-json"}]}
     ]
     d["enabledMcpjsonServers"] = sorted(mcp_names)
     d["enabledPlugins"] = {**d.get("enabledPlugins", {}), **{p: True for p in plugins}}  # add, never drop
+    if project:
+        d["env"] = {**d.get("env", {}), "OTEL_RESOURCE_ATTRIBUTES": f"repo={project}"}
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(d, indent=2, sort_keys=True) + "\n")
 
@@ -160,7 +162,8 @@ def main(argv):
     (d / ".codex").mkdir(exist_ok=True)
     (d / ".codex" / "config.toml").write_text(render_codex(mcp))
     (d / "opencode.json").write_text(render_opencode(mcp))
-    merge_settings(d / ".claude" / "settings.json", mcp.keys(), overlay.get("plugins", []))
+    project = argv[argv.index("--project") + 1] if "--project" in argv else None
+    merge_settings(d / ".claude" / "settings.json", mcp.keys(), overlay.get("plugins", []), project=project)
     render_agents(d / "agents", [d / ".claude" / "agents", d / ".opencode" / "agents"])
 
 

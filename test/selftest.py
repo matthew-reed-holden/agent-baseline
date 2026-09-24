@@ -35,6 +35,7 @@ assert ".worktrees/" in (tmp / ".gitignore").read_text()
 s = json.loads((tmp / ".claude" / "settings.json").read_text())
 assert s["permissions"] == {"allow": ["Bash(go test *)"]}, s
 assert s["enabledMcpjsonServers"] == ["api", "db"] and s["enabledPlugins"] == {"gopls-lsp@claude-plugins-official": True}
+assert s["env"]["OTEL_RESOURCE_ATTRIBUTES"] == "repo=fixture", s
 assert s["hooks"]["SessionStart"][0]["hooks"][0]["command"] == "bd gate check >/dev/null 2>&1; bd prime --hook-json"
 
 # generated
