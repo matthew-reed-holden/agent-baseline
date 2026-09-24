@@ -1,0 +1,45 @@
+# agent-baseline observability stack. `setup.sh up` from this directory.
+services:
+  lgtm:
+    image: grafana/otel-lgtm:latest
+    container_name: agent-lgtm
+    restart: unless-stopped
+    ports:
+      - "${BIND:-127.0.0.1}:3000:3000"   # Grafana
+      - "${BIND:-127.0.0.1}:4317:4317"   # OTLP gRPC
+      - "${BIND:-127.0.0.1}:4318:4318"   # OTLP HTTP
+      - "${BIND:-127.0.0.1}:9090:9090"   # Prometheus
+      - "${BIND:-127.0.0.1}:3100:3100"   # Loki
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set in .env}
+      GF_USERS_DEFAULT_THEME: system
+    volumes:
+      - lgtm-data:/data
+      - ./otelcol-config.yaml:/otel-lgtm/otelcol-config.yaml:ro
+      - ./grafana/dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/custom.yaml:ro
+      - ./grafana:/otel-lgtm/grafana/conf/provisioning/dashboards/custom:ro
+
+  mcp-grafana:
+    image: grafana/mcp-grafana:latest
+    container_name: agent-mcp-grafana
+    restart: unless-stopped
+    depends_on: [lgtm]
+    ports:
+      - "${BIND:-127.0.0.1}:8000:8000"
+    environment:
+      GRAFANA_URL: http://lgtm:3000
+      GRAFANA_USERNAME: admin
+      GRAFANA_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set in .env}
+    # Least tool surface: keep search, datasource, prometheus, loki, dashboard, query.
+    command: >
+      -t streamable-http --address 0.0.0.0:8000
+      --disable-incident --disable-write --disable-elasticsearch --disable-quickwit
+      --disable-influxdb --disable-alerting --disable-oncall --disable-asserts
+      --disable-sift --disable-admin --disable-pyroscope --disable-navigation
+      --disable-rendering --disable-snapshot --disable-cloudwatch --disable-examples
+      --disable-sql --disable-clickhouse --disable-snowflake --disable-athena
+      --disable-runpanelquery --disable-graphite --disable-provisioning
+      --disable-agento11y --disable-assistant --disable-docs
+
+volumes:
+  lgtm-data:
